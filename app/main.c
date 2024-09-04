@@ -3,6 +3,23 @@
 #include <string.h>
 #include <stdbool.h>
 
+#define BUILTIN_COUNT 3
+
+static char *builtins[BUILTIN_COUNT] = {
+  "exit",
+  "echo",
+  "type",
+};
+
+static bool is_builtin(const char *cmd)
+{
+  for (int i = 0; i < BUILTIN_COUNT; i++)
+    if (!strncmp(cmd, builtins[i], strlen(cmd) - 1))
+      return true;
+
+  return false;
+}
+
 static bool starts_with(const char *str, char *suffix)
 {
   int i = 0;
@@ -24,23 +41,37 @@ static void cmd_echo(const char *input)
   printf("%s", input + 5); // input + 5 (aka. input + strlen("echo") + 1)
 }
 
+static void cmd_type(const char *input)
+{
+  const char *arg = input + 5; // input + 5 (aka. input + strlen("type") + 1)
+  const int arg_len = (int)strlen(arg) - 1;
+
+  if (!is_builtin(arg))
+  {
+    printf("%.*s: not found\n", arg_len, arg);
+    return;
+  }
+
+  printf("%.*s is a shell builtin\n", arg_len, arg);
+}
+
+static void *builtins_map[BUILTIN_COUNT][2] = {
+  { "exit", &cmd_exit },
+  { "echo", &cmd_echo },
+  { "type", &cmd_type },
+};
+
 static void handle_command(const char *input)
 {
   int i = 0;
-  static void *builtins[3][2] = {
-    { "exit", &cmd_exit },
-    { "echo", &cmd_echo },
-    { NULL },
-  };
 
-  while (builtins[i][0])
+  for (int i = 0; i < BUILTIN_COUNT; i++)
   {
-    if (starts_with(input, builtins[i][0]))
+    if (starts_with(input, builtins_map[i][0]))
     {
-      ((void (*)(const char *))builtins[i][1])(input);
+      ((void (*)(const char *))builtins_map[i][1])(input);
       return;
     }
-    i++;
   }
 
   printf("%.*s: command not found\n", (int)strlen(input) - 1, input);
