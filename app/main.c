@@ -21,7 +21,7 @@ static void cmd_exit(const char *input)
 
 static void cmd_echo(const char *input)
 {
-  printf("%s\n", input + 5); // input + 5 (aka. input + strlen("echo") + 1)
+  printf("%s", input + 5); // input + 5 (aka. input + strlen("echo") + 1)
 }
 
 static void handle_command(const char *input)
