@@ -1,18 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 
-static int strlen_until(char *str, char c)
-{
-  int len = 0;
-
-  while (str[len] != c)
-    len++;
-
-  return len;
-}
-
-static bool starts_with(char *str, char *suffix)
+static bool starts_with(const char *str, char *suffix)
 {
   int i = 0;
 
@@ -23,13 +14,30 @@ static bool starts_with(char *str, char *suffix)
   return (str[i] == ' ' || str[i] == '\n');
 }
 
-static void handle_command(char *input)
+static void cmd_exit(const char *input)
 {
-  if (starts_with(input, "exit")) {
-    exit(0);
-  } else {
-    printf("%.*s: command not found\n", strlen_until(input, '\n'), input);
+  exit(0);
+}
+
+static void handle_command(const char *input)
+{
+  int i = 0;
+  static void *builtins[2][2] = {
+    { "exit", &cmd_exit },
+    { NULL },
+  };
+
+  while (builtins[i][0])
+  {
+    if (starts_with(input, builtins[i][0]))
+    {
+      ((void (*)(const char *))builtins[i][1])(input);
+      return;
+    }
+    i++;
   }
+
+  printf("%.*s: command not found\n", (int)strlen(input) - 1, input);
 }
 
 int main()
@@ -42,7 +50,7 @@ int main()
     fflush(stdout);
 
     fgets(input, 100, stdin);
-    handle_command(input);
+    handle_command((const char *)input);
   }
   return 0;
 }
