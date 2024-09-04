@@ -19,11 +19,17 @@ static void cmd_exit(const char *input)
   exit(0);
 }
 
+static void cmd_echo(const char *input)
+{
+  printf("%s\n", input + 5); // input + 5 (aka. input + strlen("echo") + 1)
+}
+
 static void handle_command(const char *input)
 {
   int i = 0;
-  static void *builtins[2][2] = {
+  static void *builtins[3][2] = {
     { "exit", &cmd_exit },
+    { "echo", &cmd_echo },
     { NULL },
   };
 
