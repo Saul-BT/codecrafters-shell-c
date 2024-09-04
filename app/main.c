@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
 
 static int strlen_until(char *str, char c)
 {
