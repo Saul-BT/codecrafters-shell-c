@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
 static int strlen_until(char *str, char c)
 {
@@ -10,13 +12,17 @@ static int strlen_until(char *str, char c)
   return len;
 }
 
-int main() {
-  printf("$ ");
-  fflush(stdout);
+int main()
+{
+  while (true)
+  {
+    printf("$ ");
+    fflush(stdout);
 
-  // Wait for user input
-  char input[100];
-  fgets(input, 100, stdin);
-  printf("%.*s: command not found\n", strlen_until(input, '\n'), input);
+    // Wait for user input
+    char input[100];
+    fgets(input, 100, stdin);
+    printf("%.*s: command not found\n", strlen_until(input, '\n'), input);
+  }
   return 0;
 }
