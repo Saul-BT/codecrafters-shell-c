@@ -35,9 +35,8 @@ static bool starts_with(const char *str, char *suffix)
 static char *get_bin_path(const char *cmd, char **envp)
 {
   char *cmd_cpy = strdup(cmd);
-  char *cmd_name = strtok(cmd_cpy, (const char *)" ");
+  char *cmd_name = strtok(cmd_cpy, " \n");
   const int cmd_name_len = (int)strlen(cmd_name);
-  sprintf(cmd_name, "%.*s", cmd_name[cmd_name_len - 1] == '\n' ? cmd_name_len - 1 : cmd_name_len, cmd_name);
 
   char *path = getenv("PATH");
   if (!path)
@@ -56,7 +55,6 @@ static char *get_bin_path(const char *cmd, char **envp)
     strcpy(tmp, path_dir);
     strcat(tmp, "/");
     strncat(tmp, cmd_name, strlen(cmd_name));
-
     if (access(tmp, X_OK) == 0)
     {
       free(path_dirs);
