@@ -32,18 +32,6 @@ static bool starts_with(const char *str, char *suffix)
   return (str[i] == ' ' || str[i] == '\n');
 }
 
-static char *get_path_dirs(char **envp)
-{
-  int i = 0;
-
-  while (strncmp(envp[i], "PATH=", 5))
-    i++;
-  
-  char *path_dirs = envp[i] + 5;
-
-  return path_dirs;
-}
-
 static void cmd_exit(const char *input)
 {
   exit(0);
@@ -58,7 +46,6 @@ static void cmd_type(const char *input, char **envp)
 {
   const char *arg = input + 5; // input + 5 (aka. input + strlen("type") + 1)
   const int arg_len = (int)strlen(arg) - 1;
-  char *path_dirs = get_path_dirs(envp);
 
   if (is_builtin(arg))
   {
@@ -66,19 +53,27 @@ static void cmd_type(const char *input, char **envp)
     return;
   }
 
-  const char *path_delim = ":";
-  char *path_dir = strtok(path_dirs, path_delim);
+  char *path = getenv("PATH");
+  if (!path)
+  {
+    printf("%.*s: not found\n", arg_len, arg);
+    return;
+  }
 
+  const char *path_delim = ":";
+  char tmp[1000];
+  char *path_dirs = strdup(path);
+  char *path_dir = strtok(path_dirs, path_delim);
   while (path_dir)
   {
-    char tmp[1000];
     strcpy(tmp, path_dir);
     strcat(tmp, "/");
     strncat(tmp, arg, strlen(arg) - 1);
 
-    if (access(tmp, F_OK) == 0)
+    if (access(tmp, X_OK) == 0)
     {
       printf("%.*s is %s\n", (int)strlen(arg) - 1, arg, tmp);
+      //free(path_dir);
       return;
     }
 
