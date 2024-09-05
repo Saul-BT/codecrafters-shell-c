@@ -4,12 +4,13 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#define BUILTIN_COUNT 3
+#define BUILTIN_COUNT 4
 
 static char *builtins[BUILTIN_COUNT] = {
   "exit",
   "echo",
   "type",
+  "pwd",
 };
 
 static bool is_builtin(const char *cmd)
@@ -102,10 +103,20 @@ static void cmd_type(const char *input, char **envp)
   printf("%.*s: not found\n", arg_len, arg);
 }
 
+static void cmd_pwd(const char *input)
+{
+  char *pwd = calloc(100, sizeof(char));
+
+  getcwd(pwd, 100);
+  printf("%s\n", pwd);
+  free(pwd);
+}
+
 static void *builtins_map[BUILTIN_COUNT][2] = {
   { "exit", &cmd_exit },
   { "echo", &cmd_echo },
   { "type", &cmd_type },
+  { "pwd",  &cmd_pwd  },
 };
 
 static void handle_command(const char *input, char **envp)
