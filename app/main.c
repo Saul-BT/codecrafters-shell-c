@@ -4,13 +4,14 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#define BUILTIN_COUNT 4
+#define BUILTIN_COUNT 5
 
 static char *builtins[BUILTIN_COUNT] = {
   "exit",
   "echo",
   "type",
   "pwd",
+  "cd",
 };
 
 static bool is_builtin(const char *cmd)
@@ -112,11 +113,21 @@ static void cmd_pwd(const char *input)
   free(pwd);
 }
 
+static void cmd_cd(const char *input)
+{
+  char path[100];
+  sprintf(path, "%.*s", (int)strlen(input + 3) - 1, input + 3);
+
+  if (chdir(path))
+    printf("cd: %s: No such file or directory\n", path);
+}
+
 static void *builtins_map[BUILTIN_COUNT][2] = {
   { "exit", &cmd_exit },
   { "echo", &cmd_echo },
   { "type", &cmd_type },
   { "pwd",  &cmd_pwd  },
+  { "cd",   &cmd_cd   },
 };
 
 static void handle_command(const char *input, char **envp)
