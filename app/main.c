@@ -118,6 +118,9 @@ static void cmd_cd(const char *input)
   char path[100];
   sprintf(path, "%.*s", (int)strlen(input + 3) - 1, input + 3);
 
+  if (!strncmp(path, "~", 1))
+    strcpy(path, getenv("HOME"));
+
   if (chdir(path))
     printf("cd: %s: No such file or directory\n", path);
 }
