@@ -32,6 +32,46 @@ static bool starts_with(const char *str, char *suffix)
   return (str[i] == ' ' || str[i] == '\n');
 }
 
+static char *get_bin_path(const char *cmd, char **envp)
+{
+  char *cmd_cpy = strdup(cmd);
+  char *cmd_name = strtok(cmd_cpy, (const char *)" ");
+  const int cmd_name_len = (int)strlen(cmd_name);
+  sprintf(cmd_name, "%.*s", cmd_name[cmd_name_len - 1] == '\n' ? cmd_name_len - 1 : cmd_name_len, cmd_name);
+
+  char *path = getenv("PATH");
+  if (!path)
+  {
+    printf("%.*s: not found\n", cmd_name_len, cmd_name);
+    free(cmd_cpy);
+    return NULL;
+  }
+
+  const char *path_delim = ":";
+  char tmp[1000];
+  char *path_dirs = strdup(path);
+  char *path_dir = strtok(path_dirs, path_delim);
+  while (path_dir)
+  {
+    strcpy(tmp, path_dir);
+    strcat(tmp, "/");
+    strncat(tmp, cmd_name, strlen(cmd_name));
+
+    if (access(tmp, X_OK) == 0)
+    {
+      free(path_dirs);
+      free(cmd_cpy);
+      return strdup(tmp);
+    }
+
+    path_dir = strtok(NULL, path_delim);
+  }
+
+  free(path_dirs);
+  free(cmd_cpy);
+  return NULL;
+}
+
 static void cmd_exit(const char *input)
 {
   exit(0);
@@ -53,31 +93,12 @@ static void cmd_type(const char *input, char **envp)
     return;
   }
 
-  char *path = getenv("PATH");
-  if (!path)
+  char *bin_path = get_bin_path(arg, envp);
+  if (bin_path)
   {
-    printf("%.*s: not found\n", arg_len, arg);
+    printf("%.*s is %s\n", (int)strlen(arg) - 1, arg, bin_path);
+    free(bin_path);
     return;
-  }
-
-  const char *path_delim = ":";
-  char tmp[1000];
-  char *path_dirs = strdup(path);
-  char *path_dir = strtok(path_dirs, path_delim);
-  while (path_dir)
-  {
-    strcpy(tmp, path_dir);
-    strcat(tmp, "/");
-    strncat(tmp, arg, strlen(arg) - 1);
-
-    if (access(tmp, X_OK) == 0)
-    {
-      printf("%.*s is %s\n", (int)strlen(arg) - 1, arg, tmp);
-      //free(path_dir);
-      return;
-    }
-
-    path_dir = strtok(NULL, path_delim);
   }
 
   printf("%.*s: not found\n", arg_len, arg);
@@ -100,6 +121,14 @@ static void handle_command(const char *input, char **envp)
       ((void (*)(const char *, char **))builtins_map[i][1])(input, envp);
       return;
     }
+  }
+
+  char *bin_path = get_bin_path(input, envp);
+  if (bin_path)
+  {
+    free(bin_path);
+    system(input);
+    return;
   }
 
   printf("%.*s: command not found\n", (int)strlen(input) - 1, input);
